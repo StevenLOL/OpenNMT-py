@@ -95,6 +95,7 @@ class Embeddings(nn.Module):
                     kinw2v+=1
                     #print 'key in w2v ',kinw2v
             print 'loaded wordvector',emb_file
+            print kinw2v,'words found in pretrained embeddings'
             print self.word_lut.weight.data
             
             #print self.dicts.stoi
