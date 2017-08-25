@@ -8,11 +8,14 @@ from onmt.modules import aeq
 from onmt.modules.Gate import ContextGateFactory
 from torch.nn.utils.rnn import pad_packed_sequence as unpack
 from torch.nn.utils.rnn import pack_padded_sequence as pack
+import numpy as np
+import gensim
 
 
 class Embeddings(nn.Module):
     def __init__(self, vec_size, opt, dicts, feature_dicts=None):
         super(Embeddings, self).__init__()
+        self.dicts=dicts
         self.positional_encoding = opt.position_encoding
         if self.positional_encoding:
             self.pe = self.make_positional_encodings(vec_size, 5000)
@@ -77,8 +80,26 @@ class Embeddings(nn.Module):
 
     def load_pretrained_vectors(self, emb_file):
         if emb_file is not None:
-            pretrained = torch.load(emb_file)
-            self.word_lut.weight.data.copy_(pretrained)
+            print self.word_lut.weight.data
+            print type(self.word_lut.weight.data)
+            print 'load wordvector',emb_file
+            gensimW2V=gensim.models.word2vec.Word2Vec.load_word2vec_format(emb_file)
+            #for k in gensimW2V:
+            #    print k,gensimW2V[k]
+            #    break;
+            kinw2v=0
+            for k in self.dicts.stoi:
+                if k in gensimW2V:
+                    kvalue=gensimW2V[k]                    
+                    self.word_lut.weight.data[self.dicts.stoi[k],:]=torch.FloatTensor(kvalue.astype(np.float32))
+                    kinw2v+=1
+                    #print 'key in w2v ',kinw2v
+            print 'loaded wordvector',emb_file
+            print self.word_lut.weight.data
+            
+            #print self.dicts.stoi
+            #pretrained = torch.load(emb_file)
+            #self.word_lut.weight.data.copy_(pretrained)
 
     def merge(self, features):
         if self.feat_merge == 'concat':
